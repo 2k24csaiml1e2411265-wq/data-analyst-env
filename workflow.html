@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>DataAnalystEnv — Workflow</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Clash+Display:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#06080f;
+  --surface:#0c1120;
+  --surface2:#111827;
+  --blue:#3b82f6;
+  --blue-glow:rgba(59,130,246,0.3);
+  --cyan:#06b6d4;
+  --green:#22c55e;
+  --amber:#f59e0b;
+  --red:#f87171;
+  --purple:#a78bfa;
+  --text:#f1f5f9;
+  --muted:#64748b;
+  --border:rgba(59,130,246,0.12);
+  --mono:'JetBrains Mono',monospace;
+  --display:'Clash Display',sans-serif;
+}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);overflow-x:hidden;min-height:100vh;}
+
+/* Animated background */
+body::before{
+  content:'';position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 20%, rgba(59,130,246,0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(6,182,212,0.04) 0%, transparent 60%);
+  pointer-events:none;z-index:0;
+}
+
+/* HEADER */
+header{
+  text-align:center;padding:80px 24px 40px;
+  position:relative;z-index:1;
+}
+.tag{
+  display:inline-block;font-size:10px;letter-spacing:3px;
+  text-transform:uppercase;color:var(--cyan);
+  border:1px solid rgba(6,182,212,0.3);
+  padding:5px 14px;border-radius:100px;margin-bottom:24px;
+}
+h1{
+  font-family:var(--display);
+  font-size:clamp(36px,6vw,72px);
+  font-weight:700;letter-spacing:-2px;
+  line-height:1.05;margin-bottom:16px;
+}
+h1 em{
+  font-style:normal;
+  background:linear-gradient(90deg,var(--blue),var(--cyan));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.subtitle{font-size:14px;color:var(--muted);max-width:500px;margin:0 auto 48px;line-height:1.8;}
+
+/* MAIN WORKFLOW CONTAINER */
+.workflow{
+  max-width:1100px;margin:0 auto;
+  padding:0 24px 100px;
+  position:relative;z-index:1;
+}
+
+/* STEP CARDS */
+.steps{display:flex;flex-direction:column;gap:0;}
+
+.step{
+  display:grid;
+  grid-template-columns:80px 1fr;
+  gap:0;
+  position:relative;
+}
+
+/* Connector line */
+.step:not(:last-child) .step-line{
+  position:absolute;left:39px;top:80px;bottom:-1px;
+  width:2px;
+  background:linear-gradient(to bottom, var(--blue) 0%, rgba(59,130,246,0.1) 100%);
+  z-index:0;
+}
+
+.step-left{
+  display:flex;flex-direction:column;align-items:center;
+  padding-top:24px;position:relative;z-index:1;
+}
+
+.step-num{
+  width:40px;height:40px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;
+  border:2px solid var(--blue);
+  background:var(--bg);color:var(--blue);
+  position:relative;z-index:2;
+  transition:all 0.3s;
+  cursor:pointer;
+  flex-shrink:0;
+}
+.step-num.active{
+  background:var(--blue);color:#fff;
+  box-shadow:0 0 24px var(--blue-glow);
+}
+.step-num.done{
+  background:var(--green);border-color:var(--green);color:#fff;
+}
+
+.step-content{
+  padding:20px 0 40px 24px;
+}
+
+.step-header{
+  display:flex;align-items:center;gap:12px;margin-bottom:12px;
+  cursor:pointer;
+}
+.step-icon{font-size:20px;}
+.step-title{
+  font-family:var(--display);
+  font-size:20px;font-weight:600;
+  transition:color 0.2s;
+}
+.step-title:hover{color:var(--blue);}
+.step-badge{
+  font-size:9px;letter-spacing:2px;text-transform:uppercase;
+  padding:3px 9px;border-radius:100px;
+  font-weight:500;
+}
+
+.step-body{
+  overflow:hidden;
+  max-height:0;
+  transition:max-height 0.5s cubic-bezier(0.4,0,0.2,1);
+}
+.step-body.open{max-height:600px;}
+
+.step-desc{
+  font-size:13px;color:var(--muted);
+  line-height:1.8;margin-bottom:16px;
+}
+
+/* Code blocks */
+.code-block{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;overflow:hidden;
+  margin-bottom:12px;
+}
+.code-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 14px;
+  background:rgba(59,130,246,0.05);
+  border-bottom:1px solid var(--border);
+}
+.code-label{font-size:10px;color:var(--muted);letter-spacing:1px;}
+.code-lang{
+  font-size:9px;padding:2px 8px;border-radius:4px;
+  background:rgba(59,130,246,0.15);color:var(--blue);
+}
+.code-body{
+  padding:14px;font-size:11.5px;line-height:1.9;
+  overflow-x:auto;
+}
+.k{color:#7dd3fc;}   /* key */
+.s{color:#86efac;}   /* string */
+.n{color:#fbbf24;}   /* number */
+.c{color:#a78bfa;}   /* comment */
+.fn{color:#f9a8d4;}  /* function */
+.kw{color:#38bdf8;}  /* keyword */
+.op{color:var(--muted);}  /* operator */
+
+/* Data flow arrows */
+.arrow-row{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 0;font-size:11px;color:var(--muted);
+}
+.arrow-line{
+  flex:1;height:1px;
+  background:linear-gradient(to right, var(--blue), transparent);
+}
+.arrow-tip{color:var(--blue);}
+
+/* Score bar */
+.score-display{
+  display:flex;align-items:center;gap:12px;margin-top:12px;
+}
+.score-track{
+  flex:1;height:6px;background:rgba(255,255,255,0.06);
+  border-radius:3px;overflow:hidden;
+}
+.score-fill{
+  height:100%;border-radius:3px;
+  background:linear-gradient(90deg,var(--blue),var(--cyan));
+  transition:width 1s ease;
+}
+.score-val{font-size:13px;font-weight:700;color:var(--cyan);}
+
+/* LIVE DEMO PANEL */
+.demo-panel{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:16px;overflow:hidden;
+  margin-top:48px;
+}
+.demo-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px;
+  background:rgba(59,130,246,0.05);
+  border-bottom:1px solid var(--border);
+}
+.demo-title{font-size:12px;color:var(--text);font-weight:500;}
+.demo-dots{display:flex;gap:6px;}
+.demo-dot{width:10px;height:10px;border-radius:50%;}
+
+.demo-body{
+  display:grid;grid-template-columns:1fr 1fr;
+  min-height:320px;
+}
+.demo-col{padding:20px;border-right:1px solid var(--border);}
+.demo-col:last-child{border-right:none;}
+.demo-col-title{
+  font-size:10px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:14px;
+}
+
+/* Animated pipeline */
+.pipeline{
+  display:flex;align-items:center;gap:0;
+  margin:40px 0;overflow-x:auto;padding:20px 0;
+}
+.pipe-node{
+  display:flex;flex-direction:column;align-items:center;
+  gap:8px;min-width:100px;
+}
+.pipe-icon{
+  width:52px;height:52px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;border:1.5px solid var(--border);
+  background:var(--surface);
+  transition:all 0.3s;
+}
+.pipe-node.active .pipe-icon{
+  border-color:var(--blue);
+  background:rgba(59,130,246,0.1);
+  box-shadow:0 0 20px var(--blue-glow);
+}
+.pipe-label{font-size:10px;color:var(--muted);text-align:center;letter-spacing:0.5px;}
+.pipe-arrow{
+  flex:1;display:flex;align-items:center;
+  min-width:40px;
+}
+.pipe-arrow-line{
+  width:100%;height:2px;
+  background:linear-gradient(to right, rgba(59,130,246,0.3), rgba(6,182,212,0.3));
+  position:relative;
+}
+.pipe-arrow-line::after{
+  content:'';position:absolute;right:-4px;top:-4px;
+  width:0;height:0;
+  border-left:8px solid rgba(6,182,212,0.5);
+  border-top:5px solid transparent;
+  border-bottom:5px solid transparent;
+}
+
+/* Packet animation */
+.packet{
+  position:absolute;top:-5px;left:0;
+  width:10px;height:10px;border-radius:50%;
+  background:var(--blue);
+  box-shadow:0 0 8px var(--blue-glow);
+  animation:flow 2s linear infinite;
+}
+@keyframes flow{
+  from{left:0;opacity:1;}
+  to{left:100%;opacity:0;}
+}
+
+/* PLAY button */
+.play-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  background:linear-gradient(135deg,var(--blue),var(--cyan));
+  color:#fff;border:none;padding:12px 28px;
+  border-radius:8px;font-size:12px;font-family:var(--mono);
+  cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;
+  box-shadow:0 4px 20px var(--blue-glow);
+  margin-bottom:40px;
+}
+.play-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px var(--blue-glow);}
+.play-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+
+/* Terminal output */
+.terminal{
+  background:#030508;border:1px solid var(--border);
+  border-radius:12px;overflow:hidden;
+}
+.term-bar{
+  display:flex;align-items:center;gap:6px;
+  padding:10px 14px;background:rgba(255,255,255,0.02);
+  border-bottom:1px solid var(--border);
+}
+.td{width:9px;height:9px;border-radius:50%;}
+.term-title{font-size:10px;color:var(--muted);margin-left:6px;}
+.term-body{padding:16px;font-size:11px;line-height:2;min-height:160px;}
+.t-g{color:var(--green);}
+.t-b{color:var(--blue);}
+.t-c{color:var(--cyan);}
+.t-a{color:var(--amber);}
+.t-m{color:var(--muted);}
+.t-r{color:var(--red);}
+.cursor{display:inline-block;width:7px;height:13px;background:var(--blue);animation:blink 1s infinite;vertical-align:middle;}
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+
+/* Reward meter */
+.reward-meter{
+  display:flex;flex-direction:column;gap:10px;margin-top:16px;
+}
+.reward-row{display:flex;align-items:center;gap:10px;}
+.reward-label{font-size:10px;color:var(--muted);min-width:60px;}
+.reward-bar{flex:1;height:5px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;}
+.rb-easy{background:var(--green);}
+.rb-med{background:var(--amber);}
+.rb-hard{background:var(--red);}
+.reward-score{font-size:11px;font-weight:700;}
+
+/* Responsive */
+@media(max-width:600px){
+  .demo-body{grid-template-columns:1fr;}
+  .demo-col{border-right:none;border-bottom:1px solid var(--border);}
+  .pipeline{gap:0;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="tag">OpenEnv · Workflow Visualizer</div>
+  <h1>How <em>DataAnalystEnv</em><br/>Works</h1>
+  <p class="subtitle">An interactive walkthrough of the AI agent loop — from reset to reward, step by step.</p>
+  <button class="play-btn" id="playBtn" onclick="runDemo()">▶ Run Live Demo</button>
+</header>
+
+<div class="workflow">
+
+  <!-- PIPELINE OVERVIEW -->
+  <div class="pipeline" id="pipeline">
+    <div class="pipe-node" id="p0">
+      <div class="pipe-icon">🤖</div>
+      <div class="pipe-label">AI Agent</div>
+    </div>
+    <div class="pipe-arrow"><div class="pipe-arrow-line"><div class="packet" style="animation-delay:0s"></div></div></div>
+    <div class="pipe-node" id="p1">
+      <div class="pipe-icon">🔄</div>
+      <div class="pipe-label">/reset</div>
+    </div>
+    <div class="pipe-arrow"><div class="pipe-arrow-line"><div class="packet" style="animation-delay:0.5s"></div></div></div>
+    <div class="pipe-node" id="p2">
+      <div class="pipe-icon">📊</div>
+      <div class="pipe-label">Dataset</div>
+    </div>
+    <div class="pipe-arrow"><div class="pipe-arrow-line"><div class="packet" style="animation-delay:1s"></div></div></div>
+    <div class="pipe-node" id="p3">
+      <div class="pipe-icon">🧠</div>
+      <div class="pipe-label">LLM Think</div>
+    </div>
+    <div class="pipe-arrow"><div class="pipe-arrow-line"><div class="packet" style="animation-delay:1.5s"></div></div></div>
+    <div class="pipe-node" id="p4">
+      <div class="pipe-icon">⚡</div>
+      <div class="pipe-label">/step</div>
+    </div>
+    <div class="pipe-arrow"><div class="pipe-arrow-line"><div class="packet" style="animation-delay:2s"></div></div></div>
+    <div class="pipe-node" id="p5">
+      <div class="pipe-icon">🏆</div>
+      <div class="pipe-label">Reward</div>
+    </div>
+  </div>
+
+  <!-- STEPS -->
+  <div class="steps">
+
+    <!-- STEP 1 -->
+    <div class="step">
+      <div class="step-line"></div>
+      <div class="step-left">
+        <div class="step-num" id="num1" onclick="toggleStep(1)">1</div>
+      </div>
+      <div class="step-content">
+        <div class="step-header" onclick="toggleStep(1)">
+          <span class="step-icon">🔄</span>
+          <span class="step-title">Agent calls /reset</span>
+          <span class="step-badge" style="background:rgba(59,130,246,0.15);color:var(--blue);">POST</span>
+        </div>
+        <div class="step-body" id="body1">
+          <p class="step-desc">The AI agent starts a new episode by calling the <code style="color:var(--cyan)">/reset</code> endpoint. The environment generates a fresh 100-row employee dataset with injected data quality issues and returns Task 1.</p>
+          <div class="code-block">
+            <div class="code-header"><span class="code-label">REQUEST</span><span class="code-lang">JSON</span></div>
+            <div class="code-body">
+POST /reset<br/>
+<span class="op">{</span> <span class="k">"seed"</span><span class="op">:</span> <span class="n">42</span> <span class="op">}</span>
+            </div>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span class="code-label">RESPONSE — Observation</span><span class="code-lang">JSON</span></div>
+            <div class="code-body">
+<span class="op">{</span><br/>
+&nbsp;&nbsp;<span class="k">"dataset_csv"</span><span class="op">:</span> <span class="s">"age,salary,experience_years,department,...\n61.0,500000.0,4.0,Sales,..."</span><span class="op">,</span><br/>
+&nbsp;&nbsp;<span class="k">"task"</span><span class="op">:</span> <span class="op">{</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">"id"</span><span class="op">:</span> <span class="s">"task_easy"</span><span class="op">,</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">"name"</span><span class="op">:</span> <span class="s">"Data Quality Inspector"</span><span class="op">,</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">"difficulty"</span><span class="op">:</span> <span class="s">"easy"</span><br/>
+&nbsp;&nbsp;<span class="op">},</span><br/>
+&nbsp;&nbsp;<span class="k">"message"</span><span class="op">:</span> <span class="s">"Task 1 of 3: Data Quality Inspector"</span><br/>
+<span class="op">}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step">
+      <div class="step-line"></div>
+      <div class="step-left">
+        <div class="step-num" id="num2" onclick="toggleStep(2)">2</div>
+      </div>
+      <div class="step-content">
+        <div class="step-header" onclick="toggleStep(2)">
+          <span class="step-icon">🧠</span>
+          <span class="step-title">LLM analyzes the dataset</span>
+          <span class="step-badge" style="background:rgba(167,139,250,0.15);color:var(--purple);">LLM</span>
+        </div>
+        <div class="step-body" id="body2">
+          <p class="step-desc">The agent feeds the CSV dataset and task description to the LLM using the OpenAI client. The model reasons about the data and produces a structured JSON response.</p>
+          <div class="code-block">
+            <div class="code-header"><span class="code-label">inference.py — LLM Call</span><span class="code-lang">Python</span></div>
+            <div class="code-body">
+<span class="kw">response</span> <span class="op">=</span> <span class="fn">client.chat.completions.create</span><span class="op">(</span><br/>
+&nbsp;&nbsp;<span class="k">model</span><span class="op">=</span><span class="s">MODEL_NAME</span><span class="op">,</span><br/>
+&nbsp;&nbsp;<span class="k">messages</span><span class="op">=[</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="op">{</span><span class="s">"role"</span><span class="op">:</span> <span class="s">"system"</span><span class="op">,</span> <span class="s">"content"</span><span class="op">:</span> <span class="s">"You are an expert data analyst..."</span><span class="op">},</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="op">{</span><span class="s">"role"</span><span class="op">:</span> <span class="s">"user"</span><span class="op">,</span> <span class="s">"content"</span><span class="op">:</span> <span class="s">task_prompt + dataset_csv</span><span class="op">}</span><br/>
+&nbsp;&nbsp;<span class="op">],</span><br/>
+&nbsp;&nbsp;<span class="k">response_format</span><span class="op">={</span><span class="s">"type"</span><span class="op">:</span> <span class="s">"json_object"</span><span class="op">},</span><br/>
+&nbsp;&nbsp;<span class="k">temperature</span><span class="op">=</span><span class="n">0.1</span><br/>
+<span class="op">)</span>
+            </div>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span class="code-label">LLM Output — Task 1 Action</span><span class="code-lang">JSON</span></div>
+            <div class="code-body">
+<span class="op">{</span><br/>
+&nbsp;&nbsp;<span class="k">"missing_values"</span><span class="op">:</span> <span class="op">{</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">"age"</span><span class="op">:</span> <span class="n">10</span><span class="op">,</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">"salary"</span><span class="op">:</span> <span class="n">7</span><span class="op">,</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">"experience_years"</span><span class="op">:</span> <span class="n">5</span><br/>
+&nbsp;&nbsp;<span class="op">},</span><br/>
+&nbsp;&nbsp;<span class="k">"data_types"</span><span class="op">:</span> <span class="op">{</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">"age"</span><span class="op">:</span> <span class="s">"float64"</span><span class="op">,</span> <span class="k">"salary"</span><span class="op">:</span> <span class="s">"float64"</span><span class="op">,</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">"department"</span><span class="op">:</span> <span class="s">"object"</span><span class="op">,</span> <span class="k">"performance_score"</span><span class="op">:</span> <span class="s">"float64"</span><br/>
+&nbsp;&nbsp;<span class="op">}</span><br/>
+<span class="op">}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="step">
+      <div class="step-line"></div>
+      <div class="step-left">
+        <div class="step-num" id="num3" onclick="toggleStep(3)">3</div>
+      </div>
+      <div class="step-content">
+        <div class="step-header" onclick="toggleStep(3)">
+          <span class="step-icon">⚡</span>
+          <span class="step-title">Agent submits to /step</span>
+          <span class="step-badge" style="background:rgba(59,130,246,0.15);color:var(--blue);">POST</span>
+        </div>
+        <div class="step-body" id="body3">
+          <p class="step-desc">The agent posts its action JSON to <code style="color:var(--cyan)">/step</code>. The environment grader scores the response and returns a reward between 0.0 and 1.0 plus the next task observation.</p>
+          <div class="code-block">
+            <div class="code-header"><span class="code-label">REQUEST — /step</span><span class="code-lang">JSON</span></div>
+            <div class="code-body">
+POST /step<br/>
+<span class="op">{</span> <span class="k">"action"</span><span class="op">:</span> <span class="op">{</span> <span class="s">...agent's JSON response...</span> <span class="op">}</span> <span class="op">}</span>
+            </div>
+          </div>
+          <div class="code-block">
+            <div class="code-header"><span class="code-label">RESPONSE — StepResult</span><span class="code-lang">JSON</span></div>
+            <div class="code-body">
+<span class="op">{</span><br/>
+&nbsp;&nbsp;<span class="k">"reward"</span><span class="op">:</span> <span class="n">0.920</span><span class="op">,</span><br/>
+&nbsp;&nbsp;<span class="k">"done"</span><span class="op">:</span> <span class="kw">false</span><span class="op">,</span><br/>
+&nbsp;&nbsp;<span class="k">"info"</span><span class="op">:</span> <span class="op">{</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">"task_id"</span><span class="op">:</span> <span class="s">"task_easy"</span><span class="op">,</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">"feedback"</span><span class="op">:</span> <span class="s">"✓ All missing value columns identified | ✓ 6/6 types found"</span><br/>
+&nbsp;&nbsp;<span class="op">},</span><br/>
+&nbsp;&nbsp;<span class="k">"observation"</span><span class="op">:</span> <span class="op">{</span> <span class="c">// next task...</span> <span class="op">}</span><br/>
+<span class="op">}</span>
+            </div>
+          </div>
+          <div class="reward-meter">
+            <div class="reward-row">
+              <span class="reward-label" style="color:var(--green);">EASY</span>
+              <div class="reward-bar"><div class="rb-easy" style="width:92%;height:100%;border-radius:3px;"></div></div>
+              <span class="reward-score" style="color:var(--green);">0.92</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="step">
+      <div class="step-line"></div>
+      <div class="step-left">
+        <div class="step-num" id="num4" onclick="toggleStep(4)">4</div>
+      </div>
+      <div class="step-content">
+        <div class="step-header" onclick="toggleStep(4)">
+          <span class="step-icon">🔁</span>
+          <span class="step-title">Repeat for Tasks 2 & 3</span>
+          <span class="step-badge" style="background:rgba(245,158,11,0.15);color:var(--amber);">LOOP</span>
+        </div>
+        <div class="step-body" id="body4">
+          <p class="step-desc">The agent receives the next task and repeats the observe → think → act cycle. Task 2 requires statistical analysis; Task 3 requires a full written report graded by an LLM judge.</p>
+          <div class="reward-meter">
+            <div class="reward-row">
+              <span class="reward-label" style="color:var(--green);">EASY</span>
+              <div class="reward-bar"><div class="rb-easy" style="width:92%;height:100%;border-radius:3px;"></div></div>
+              <span class="reward-score" style="color:var(--green);">0.92</span>
+            </div>
+            <div class="reward-row">
+              <span class="reward-label" style="color:var(--amber);">MEDIUM</span>
+              <div class="reward-bar"><div class="rb-med" style="width:81%;height:100%;border-radius:3px;"></div></div>
+              <span class="reward-score" style="color:var(--amber);">0.81</span>
+            </div>
+            <div class="reward-row">
+              <span class="reward-label" style="color:var(--red);">HARD</span>
+              <div class="reward-bar"><div class="rb-hard" style="width:75%;height:100%;border-radius:3px;"></div></div>
+              <span class="reward-score" style="color:var(--red);">0.75</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 5 -->
+    <div class="step">
+      <div class="step-left">
+        <div class="step-num" id="num5" onclick="toggleStep(5)">5</div>
+      </div>
+      <div class="step-content">
+        <div class="step-header" onclick="toggleStep(5)">
+          <span class="step-icon">🏆</span>
+          <span class="step-title">Episode complete — Final score</span>
+          <span class="step-badge" style="background:rgba(34,197,94,0.15);color:var(--green);">DONE</span>
+        </div>
+        <div class="step-body" id="body5">
+          <p class="step-desc">After 3 tasks, <code style="color:var(--cyan)">done = true</code>. The final score is the average reward across all tasks. The agent can be retrained using these scores to improve over time.</p>
+          <div class="code-block">
+            <div class="code-header"><span class="code-label">Final Output</span><span class="code-lang">Terminal</span></div>
+            <div class="code-body">
+<span class="t-g">EASY   </span><span class="op">| ████████████████████ |</span> <span class="t-g">0.920</span><br/>
+<span class="t-a">MEDIUM </span><span class="op">| ████████████████░░░░ |</span> <span class="t-a">0.810</span><br/>
+<span class="t-r">HARD   </span><span class="op">| ███████████████░░░░░ |</span> <span class="t-r">0.750</span><br/>
+<br/>
+<span class="op">Average :</span> <span class="t-c">0.827 / 1.000</span><br/>
+<span class="op">Tasks   :</span> <span class="t-g">3 completed ✓</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- LIVE TERMINAL DEMO -->
+  <div class="demo-panel">
+    <div class="demo-header">
+      <div class="demo-dots">
+        <div class="demo-dot" style="background:#ef4444;"></div>
+        <div class="demo-dot" style="background:#f59e0b;"></div>
+        <div class="demo-dot" style="background:#22c55e;"></div>
+      </div>
+      <div class="demo-title">Live Run Simulation</div>
+      <div style="font-size:10px;color:var(--muted);">inference.py</div>
+    </div>
+    <div class="demo-body">
+      <div class="demo-col">
+        <div class="demo-col-title">Terminal Output</div>
+        <div class="terminal">
+          <div class="term-body" id="termOutput">
+            <span class="t-m">Press "Run Live Demo" to start...</span>
+          </div>
+        </div>
+      </div>
+      <div class="demo-col">
+        <div class="demo-col-title">Score Progress</div>
+        <div id="scorePanel" style="padding-top:8px;">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:20px;">Waiting for run...</div>
+          <div class="reward-meter" id="liveScores" style="display:none;">
+            <div class="reward-row">
+              <span class="reward-label" style="color:var(--green);">Task 1</span>
+              <div class="reward-bar"><div id="bar1" class="rb-easy" style="width:0%;height:100%;border-radius:3px;transition:width 1s ease;"></div></div>
+              <span class="reward-score t-g" id="sc1">—</span>
+            </div>
+            <div class="reward-row" style="margin-top:12px;">
+              <span class="reward-label" style="color:var(--amber);">Task 2</span>
+              <div class="reward-bar"><div id="bar2" class="rb-med" style="width:0%;height:100%;border-radius:3px;transition:width 1s ease;"></div></div>
+              <span class="reward-score t-a" id="sc2">—</span>
+            </div>
+            <div class="reward-row" style="margin-top:12px;">
+              <span class="reward-label" style="color:var(--red);">Task 3</span>
+              <div class="reward-bar"><div id="bar3" class="rb-hard" style="width:0%;height:100%;border-radius:3px;transition:width 1s ease;"></div></div>
+              <span class="reward-score t-r" id="sc3">—</span>
+            </div>
+            <div style="margin-top:24px;padding-top:16px;border-top:1px solid var(--border);">
+              <div style="font-size:10px;color:var(--muted);margin-bottom:6px;">AVERAGE SCORE</div>
+              <div id="avgScore" style="font-family:var(--display);font-size:32px;font-weight:700;color:var(--cyan);">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer style="text-align:center;padding:32px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);position:relative;z-index:1;">
+  DataAnalystEnv · Yash Kushwaha ·
+  <a href="https://huggingface.co/spaces/Yk9900/data-analyst-env" target="_blank" style="color:var(--blue);text-decoration:none;">HF Space</a> ·
+  <a href="https://github.com/2k24csaiml1e2411265-wq/data-analyst-env" target="_blank" style="color:var(--blue);text-decoration:none;">GitHub</a>
+</footer>
+
+<script>
+// Toggle step expand/collapse
+function toggleStep(n){
+  const body = document.getElementById('body'+n);
+  const num = document.getElementById('num'+n);
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open');
+  num.classList.toggle('active', !isOpen);
+}
+
+// Open first step on load
+window.onload = () => { toggleStep(1); };
+
+// Live demo simulation
+let running = false;
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+async function runDemo(){
+  if(running) return;
+  running = true;
+  const btn = document.getElementById('playBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Running...';
+
+  const out = document.getElementById('termOutput');
+  const scores = document.getElementById('liveScores');
+  scores.style.display = 'flex';
+  scores.style.flexDirection = 'column';
+  document.querySelector('#scorePanel div').style.display = 'none';
+
+  // Reset bars
+  ['bar1','bar2','bar3'].forEach(id=>document.getElementById(id).style.width='0%');
+  ['sc1','sc2','sc3'].forEach(id=>document.getElementById(id).textContent='—');
+  document.getElementById('avgScore').textContent='—';
+
+  const lines = [
+    {t:0,   html:`<span class="t-m">============================================</span>`},
+    {t:200, html:`<span class="t-b">DataAnalystEnv — Baseline Inference</span>`},
+    {t:400, html:`<span class="t-m">  API: https://router.huggingface.co/v1</span>`},
+    {t:600, html:`<span class="t-m">============================================</span>`},
+    {t:900, html:`<br/><span class="t-c">[1] Resetting environment...</span>`},
+    {t:1400,html:`<span class="t-g">  ✓ Task 1 of 3: Data Quality Inspector</span>`},
+    {t:1800,html:`<br/><span class="t-c">[Task 1] Data Quality Inspector (EASY)</span>`},
+    {t:2100,html:`<span class="t-m">  → Calling LLM agent...</span>`},
+    {t:3200,html:`<span class="t-m">  → Action: ['missing_values', 'data_types']</span>`},
+    {t:3600,html:`<span class="t-g">  ✓ Score: 0.920</span>`, after:()=>{ animBar('bar1','sc1','92','0.920'); }},
+    {t:4000,html:`<span class="t-m">  ✓ All columns identified | 6/6 types found</span>`},
+    {t:4400,html:`<br/><span class="t-c">[Task 2] Statistical Analyst (MEDIUM)</span>`},
+    {t:4700,html:`<span class="t-m">  → Calling LLM agent...</span>`},
+    {t:5800,html:`<span class="t-m">  → Action: ['statistics', 'outliers']</span>`},
+    {t:6200,html:`<span class="t-a">  ✓ Score: 0.810</span>`, after:()=>{ animBar('bar2','sc2','81','0.810'); }},
+    {t:6600,html:`<span class="t-m">  ✓ Stats 5/5 cols | Outlier F1=0.87</span>`},
+    {t:7000,html:`<br/><span class="t-c">[Task 3] Insight Reporter (HARD)</span>`},
+    {t:7300,html:`<span class="t-m">  → Calling LLM agent...</span>`},
+    {t:8600,html:`<span class="t-m">  → Action: ['report']</span>`},
+    {t:9000,html:`<span class="t-r">  ✓ Score: 0.750</span>`, after:()=>{ animBar('bar3','sc3','75','0.750'); }},
+    {t:9400,html:`<span class="t-m">  ✓ LLM Judge: Solid recommendations</span>`},
+    {t:9800,html:`<br/><span class="t-m">============================================</span>`},
+    {t:10200,html:`<span class="t-b">RESULTS</span>`},
+    {t:10400,html:`<span class="t-g">  EASY   | ████████████████████ | 0.920</span>`},
+    {t:10600,html:`<span class="t-a">  MEDIUM | ████████████████░░░░ | 0.810</span>`},
+    {t:10800,html:`<span class="t-r">  HARD   | ███████████████░░░░░ | 0.750</span>`},
+    {t:11200,html:`<br/><span class="t-c">  Average : 0.827 / 1.000 ✓</span>`,
+      after:()=>{ document.getElementById('avgScore').textContent='0.827'; }},
+    {t:11600,html:`<span class="t-g">  Episode complete!</span>`},
+  ];
+
+  out.innerHTML = '';
+  for(const line of lines){
+    await sleep(line.t === 0 ? 0 : 200);
+    out.innerHTML += line.html + '<br/>';
+    out.scrollTop = out.scrollHeight;
+    if(line.after) line.after();
+    if(line.t > 0){
+      // auto-open relevant step
+      if(line.t >= 900 && line.t < 1800) openStep(1);
+      else if(line.t >= 1800 && line.t < 4400) openStep(2);
+      else if(line.t >= 4400 && line.t < 7000) openStep(3);
+      else if(line.t >= 7000 && line.t < 9800) openStep(4);
+      else if(line.t >= 9800) openStep(5);
+    }
+  }
+
+  out.innerHTML += '<br/><span class="t-m">$ </span><span class="cursor"></span>';
+  btn.disabled = false;
+  btn.textContent = '▶ Run Again';
+  running = false;
+}
+
+function animBar(barId, scId, pct, label){
+  setTimeout(()=>{
+    document.getElementById(barId).style.width = pct+'%';
+    document.getElementById(scId).textContent = label;
+  }, 100);
+}
+
+function openStep(n){
+  const body = document.getElementById('body'+n);
+  const num = document.getElementById('num'+n);
+  if(!body.classList.contains('open')){
+    // close others
+    [1,2,3,4,5].forEach(i=>{
+      document.getElementById('body'+i).classList.remove('open');
+      document.getElementById('num'+i).classList.remove('active');
+    });
+    body.classList.add('open');
+    num.classList.add('active');
+  }
+}
+</script>
+</body>
+</html>
