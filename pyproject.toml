@@ -13,7 +13,11 @@ dependencies = [
     "requests==2.32.3",
     "scikit-learn==1.5.2",
     "python-multipart==0.0.12",
+    "openenv-core>=0.2.0",
 ]
+
+[project.scripts]
+server = "server:app"
 
 [project.optional-dependencies]
 dev = ["pytest", "httpx"]
