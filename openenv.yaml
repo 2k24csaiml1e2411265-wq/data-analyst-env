@@ -1,0 +1,81 @@
+name: DataAnalystEnv
+version: "1.0.0"
+description: >
+  A real-world OpenEnv environment where an AI agent acts as a Data Analyst.
+  The agent receives employee datasets and must perform data quality checks,
+  statistical analysis, and write insightful business reports.
+
+author: Yash Kushwaha
+license: MIT
+tags:
+  - openenv
+
+tasks:
+  - id: task_easy
+    name: Data Quality Inspector
+    difficulty: easy
+    description: Identify missing values and data types for all columns
+    score_range: [0.0, 1.0]
+
+  - id: task_medium
+    name: Statistical Analyst
+    difficulty: medium
+    description: Compute summary statistics and detect outliers using IQR method
+    score_range: [0.0, 1.0]
+
+  - id: task_hard
+    name: Insight Reporter
+    difficulty: hard
+    description: Write a full analysis report with findings and business recommendations
+    score_range: [0.0, 1.0]
+    grader: llm_as_judge
+
+endpoints:
+  reset:
+    method: POST
+    path: /reset
+    description: Reset environment, returns first observation with dataset CSV
+  step:
+    method: POST
+    path: /step
+    description: Submit action dict, returns StepResult with reward (0.0-1.0)
+  state:
+    method: GET
+    path: /state
+    description: Returns current internal environment state
+
+observation_space:
+  dataset_csv: string
+  task:
+    id: string
+    name: string
+    difficulty: string
+    description: string
+  message: string
+
+action_space:
+  task_easy:
+    missing_values: object
+    data_types: object
+  task_medium:
+    statistics: object
+    outliers: array
+  task_hard:
+    report: string
+
+env_variables:
+  API_BASE_URL:
+    description: The API endpoint for the LLM
+    default: https://router.huggingface.co/v1
+  MODEL_NAME:
+    description: The model identifier to use for inference
+    required: true
+  HF_TOKEN:
+    description: Your Hugging Face / API key
+    required: true
+
+runtime:
+  max_inference_time: 20min
+  min_vcpu: 2
+  min_memory: 8gb
+  inference_script: inference.py
